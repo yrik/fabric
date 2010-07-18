@@ -30,6 +30,7 @@ setup(
     url='http://fabfile.org',
     packages=find_packages(),
     test_suite='nose.collector',
+    setup_requires=['nose'],
     tests_require=['nose', 'fudge'],
     install_requires=['pycrypto >=1.9'],
     entry_points={
