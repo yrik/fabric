@@ -295,20 +295,14 @@ def char_buffered(pipe):
     if win32:
         yield
     else:
-        tty_ok = True
         try:
             old_settings = termios.tcgetattr(pipe)
         except termios.error, e:
-            if e[0] is errno.EINVAL:
-                tty_ok = False
-            else:
-                import logging
-                logging.debug(repr(sys.stdin))
-                raise e
-        if tty_ok:
-            tty.setcbreak(pipe)
+            import logging
+            logging.debug(repr(sys.stdin))
+            raise e
+        tty.setcbreak(pipe)
         try:
             yield
         finally:
-            if tty_ok:
-                termios.tcsetattr(pipe, termios.TCSADRAIN, old_settings)
+            termios.tcsetattr(pipe, termios.TCSADRAIN, old_settings)
