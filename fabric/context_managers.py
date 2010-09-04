@@ -294,7 +294,13 @@ def char_buffered(pipe):
     if win32:
         yield
     else:
-        old_settings = termios.tcgetattr(pipe)
+        try:
+            old_settings = termios.tcgetattr(pipe)
+        except Exception, e:
+            import logging
+            logging.debug(repr(e))
+            logging.debug(repr(e.__class__))
+            raise e
         tty.setcbreak(pipe)
         try:
             yield
