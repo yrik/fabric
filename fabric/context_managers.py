@@ -302,8 +302,11 @@ def char_buffered(pipe):
             if e[0] is errno.EINVAL:
                 tty_ok = False
             else:
+                import logging
+                logging.debug(repr(sys.stdin))
                 raise e
-        tty.setcbreak(pipe)
+        if tty_ok:
+            tty.setcbreak(pipe)
         try:
             yield
         finally:
