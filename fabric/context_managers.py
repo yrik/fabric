@@ -8,7 +8,7 @@ Context managers for use with the ``with`` statement.
 """
 
 from contextlib import contextmanager, nested
-import errno
+import sys
 
 from fabric.state import env, output, win32
 
@@ -292,16 +292,10 @@ def char_buffered(pipe):
 
     Only applies on Unix-based systems; on Windows this is a no-op.
     """
-    if win32:
+    if win32 or not sys.stdin.isatty():
         yield
     else:
-        try:
-            old_settings = termios.tcgetattr(pipe)
-        except termios.error, e:
-            import logging, sys
-            logging.debug(repr(sys.stdin))
-            logging.debug(sys.stdin.isatty())
-            raise e
+        old_settings = termios.tcgetattr(pipe)
         tty.setcbreak(pipe)
         try:
             yield
