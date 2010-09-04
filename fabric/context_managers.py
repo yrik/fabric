@@ -300,6 +300,7 @@ def char_buffered(pipe):
         except termios.error, e:
             import logging, sys
             logging.debug(repr(sys.stdin))
+            logging.debug(sys.stdin.isatty())
             raise e
         tty.setcbreak(pipe)
         try:
