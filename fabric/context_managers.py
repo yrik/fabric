@@ -298,7 +298,7 @@ def char_buffered(pipe):
         try:
             old_settings = termios.tcgetattr(pipe)
         except termios.error, e:
-            import logging
+            import logging, sys
             logging.debug(repr(sys.stdin))
             raise e
         tty.setcbreak(pipe)
