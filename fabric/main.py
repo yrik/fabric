@@ -14,7 +14,7 @@ from optparse import OptionParser
 import os
 import sys
 
-from fabric import api # For checking callables against the API 
+from fabric import api # For checking callables against the API
 from fabric.contrib import console, files, project # Ditto
 from fabric.network import denormalize, interpret_host_string, disconnect_all
 from fabric import state # For easily-mockable access to roles, env and etc
@@ -176,6 +176,14 @@ def parse_options():
         help="print list of possible commands and exit"
     )
 
+    # Like --list, but text processing friendly
+    parser.add_option('--shortlist',
+        action='store_true',
+        dest='shortlist',
+        default=False,
+        help="print non-verbose list of possible commands and exit"
+    )
+
     # Display info about a specific command
     parser.add_option('-d', '--display',
         metavar='COMMAND',
@@ -198,6 +206,10 @@ def parse_options():
     return parser, opts, args
 
 
+def _command_names():
+    return sorted(commands.keys())
+
+
 def list_commands(docstring):
     """
     Print all found commands/tasks, then exit. Invoked with ``-l/--list.``
@@ -212,8 +224,7 @@ def list_commands(docstring):
     max_len = reduce(lambda a, b: max(a, len(b)), commands.keys(), 0)
     sep = '  '
     trail = '...'
-    names = sorted(commands.keys())
-    for name in names:
+    for name in _command_names():
         output = None
         # Print first line of docstring
         func = commands[name]
@@ -229,6 +240,14 @@ def list_commands(docstring):
         else:
             output = name
         print(indent(output))
+    sys.exit(0)
+
+
+def shortlist():
+    """
+    Print all task names separated by newlines with no embellishment.
+    """
+    print("\n".join(_command_names()))
     sys.exit(0)
 
 
@@ -252,6 +271,33 @@ def display_command(command):
     sys.exit(0)
 
 
+def _escape_split(sep, argstr):
+    """
+    Allows for escaping of the separator: e.g. task:arg='foo\, bar'
+
+    It should be noted that the way bash et. al. do command line parsing, those
+    single quotes are required.
+    """
+    escaped_sep = r'\%s' % sep
+
+    if escaped_sep not in argstr:
+        return argstr.split(sep)
+
+    before, _, after = argstr.partition(escaped_sep)
+    startlist = before.split(sep) # a regular split is fine here
+    unfinished = startlist[-1]
+    startlist = startlist[:-1]
+
+    # recurse because there may be more escaped separators
+    endlist = _escape_split(sep, after)
+
+    # finish building the escaped value. we use endlist[0] becaue the first
+    # part of the string sent in recursion is the rest of the escaped value.
+    unfinished += sep + endlist[0]
+
+    return startlist + [unfinished] + endlist[1:] # put together all the parts
+
+
 def parse_arguments(arguments):
     """
     Parse string list into list of tuples: command, args, kwargs, hosts, roles.
@@ -266,7 +312,7 @@ def parse_arguments(arguments):
         roles = []
         if ':' in cmd:
             cmd, argstr = cmd.split(':', 1)
-            for pair in argstr.split(','):
+            for pair in _escape_split(',', argstr):
                 k, _, v = pair.partition('=')
                 if v:
                     # Catch, interpret host/hosts/role/roles kwargs
@@ -390,8 +436,9 @@ def main():
 
         # Handle case where we were called bare, i.e. just "fab", and print
         # a help message.
-        if not (options.list_commands or options.display or arguments
-            or remainder_arguments):
+        actions = (options.list_commands, options.shortlist, options.display,
+            arguments, remainder_arguments)
+        if not any(actions):
             parser.print_help()
             sys.exit(1)
 
@@ -419,6 +466,10 @@ def main():
         # Now that we're settled on a fabfile, inform user.
         if state.output.debug:
             print("Using fabfile '%s'" % fabfile)
+
+        # Non-verbose command list
+        if options.shortlist:
+            shortlist()
 
         # Handle list-commands option (now that commands are loaded)
         if options.list_commands:
