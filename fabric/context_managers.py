@@ -299,7 +299,7 @@ def char_buffered(pipe):
         try:
             old_settings = termios.tcgetattr(pipe)
         except termios.error, e:
-            if e is errno.EINVAL:
+            if e[0] is errno.EINVAL:
                 tty_ok = False
             else:
                 raise e
