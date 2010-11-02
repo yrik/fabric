@@ -358,3 +358,38 @@ class TestNetwork(FabricTest):
 [%(prefix)s] out: foo
 """ % {'prefix': env.host_string}
         eq_(expected[1:], sys.stdall.getvalue())
+
+
+    def test_connect_to_bad_host_should_error_if_skip_bad_hosts_false(self):
+        """
+        When env.skip_bad_hosts = False, connection to a bad host should fail.
+        """
+        raise NotImplementedError
+
+
+    def test_connect_to_bad_host_should_not_error_if_skip_bad_hosts_true(self):
+        """
+        When env.skip_bad_hosts = True, cxn to a bad host should not fail.
+        """
+        raise NotImplementedError
+
+
+    def test_skip_bad_hosts_true_should_imply_preconnect(self):
+        """
+        Tests for env.preconnect should be True if env.skip_bad_hosts is True.
+        """
+        raise NotImplementedError
+
+
+    def test_preconnect_forces_non_lazy_connections(self):
+        """
+        When env.preconnect = True, connections should not be lazy.
+        """
+        raise NotImplementedError
+
+
+    def test_lazy_connections_when_preconnect_false(self):
+        """
+        When env.preconnect = False, connections should be lazy.
+        """
+        raise NotImplementedError
