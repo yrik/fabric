@@ -11,7 +11,22 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+from __future__ import with_statement
+import os
+import sys
+from datetime import datetime
+
+# Custom ReST roles.
+from docutils.parsers.rst import roles
+from docutils import nodes, utils
+
+def issues_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    issue_no = utils.unescape(text)
+    ref = "http://code.fabfile.org/issues/show/" + issue_no
+    node = nodes.reference(rawtext, '#' + issue_no, refuri=ref, **options)
+    return [node], []
+
+roles.register_local_role("issue", issues_role)
 
 # Custom ReST roles.
 from docutils.parsers.rst import roles
@@ -115,6 +130,13 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'default'
+html_style = 'rtd.css'
+
+from fabric.api import local, hide
+with hide('everything'):
+    fabric_tags = local('git tag | sort -r | egrep "(0\.9|1\.0)\.."', True).split()
+html_context = {'fabric_tags': fabric_tags}
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
